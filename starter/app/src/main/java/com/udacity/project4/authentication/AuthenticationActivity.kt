@@ -1,8 +1,15 @@
 package com.udacity.project4.authentication
 
+import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.ViewModelProvider
+import com.firebase.ui.auth.AuthUI
 import com.udacity.project4.R
+import com.udacity.project4.databinding.ActivityAuthenticationBinding
+import com.udacity.project4.locationreminders.RemindersActivity
 
 /**
  * This class should be the starting point of the app, It asks the users to sign in / register, and redirects the
@@ -10,15 +17,64 @@ import com.udacity.project4.R
  */
 class AuthenticationActivity : AppCompatActivity() {
 
+    companion object {
+        private const val RC_SIGN_IN = 123
+    }
+
+    private lateinit var viewModel: AuthenticationViewModel
+    private lateinit var binding: ActivityAuthenticationBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_authentication)
-//         TODO: Implement the create account and sign in using FirebaseUI, use sign in using email and sign in using Google
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_authentication)
 
-//          TODO: If the user was authenticated, send him to RemindersActivity
+        viewModel = ViewModelProvider(this).get(AuthenticationViewModel::class.java)
+        lifecycle.addObserver(viewModel)
 
-//          TODO: a bonus is to customize the sign in flow to look nice using :
-        //https://github.com/firebase/FirebaseUI-Android/blob/master/auth/README.md#custom-layout
+        viewModel.status.observe(this, {
+            binding.welcomeTextView.setText(if (it == STATE.UNAUTHENTICATED)
+                R.string.welcome_to_the_location_reminder_app
+            else
+                R.string.welcome_back_to_the_location_reminder_app)
 
+            binding.loginButton.setText(if (it == STATE.UNAUTHENTICATED)
+                R.string.login_register
+            else
+                R.string.login)
+        })
+
+        binding.loginButton.setOnClickListener {
+            if (viewModel.status.value == STATE.UNAUTHENTICATED) {
+                showLogin()
+            } else {
+                showRemindersActivity()
+            }
+        }
+    }
+
+    private fun showLogin() {
+        val providers = mutableListOf<AuthUI.IdpConfig>()
+        providers.add(AuthUI.IdpConfig.EmailBuilder().build())
+        providers.add(AuthUI.IdpConfig.GoogleBuilder().build())
+
+        val intent = AuthUI.getInstance()
+            .createSignInIntentBuilder()
+            .setAvailableProviders(providers)
+            .build()
+        startActivityForResult(intent, RC_SIGN_IN)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == RC_SIGN_IN) {
+            if (resultCode == RESULT_OK) {
+                showRemindersActivity()
+            }
+        }
+    }
+
+    private fun showRemindersActivity() {
+        startActivity(Intent(this, RemindersActivity::class.java))
+        finish()
     }
 }
