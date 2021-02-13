@@ -17,11 +17,13 @@ class RemindersListViewModelTest {
     //TODO: provide testing to the RemindersListViewModel and its live data objects
 
     @get:Rule
-    val mainCoroutineRule = MainCoroutineRule()
+    var instantExecutorRule = InstantTaskExecutorRule()
 
     @get:Rule
-    val scenario = InstantTaskExecutorRule()
+    val mainCoroutineRule = MainCoroutineRule()
 
     private lateinit var viewModel: RemindersListViewModel
     private lateinit var dataSource: FakeDataSource
+
+
 }
