@@ -41,12 +41,8 @@ class ReminderListFragment : BaseFragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        binding =
-            DataBindingUtil.inflate(
-                inflater,
-                R.layout.fragment_reminders, container, false
-            )
+    ): View {
+        binding = FragmentRemindersBinding.inflate(inflater, container, false)
         binding.viewModel = _viewModel
 
         setHasOptionsMenu(true)
@@ -58,6 +54,19 @@ class ReminderListFragment : BaseFragment() {
         return binding.root
     }
 
+    override fun onStart() {
+        super.onStart()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (!locationPermissionsApproved()) {
+                requestLocationPermissions()
+            }
+        } else {
+            if (!foregroundLocationApproved()) {
+                requestForegroundPermission()
+            }
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.lifecycleOwner = this
@@ -67,13 +76,13 @@ class ReminderListFragment : BaseFragment() {
                 if (locationPermissionsApproved()) {
                     navigateToAddReminder()
                 } else {
-                    requestLocationPermissions()
+                    openLocationSetting()
                 }
             } else {
                 if (foregroundLocationApproved()) {
                     navigateToAddReminder()
                 } else {
-                    requestForegroundPermission()
+                    openLocationSetting()
                 }
             }
         }
@@ -185,18 +194,22 @@ class ReminderListFragment : BaseFragment() {
             (requestCode == REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE &&
                     grantResults[BACKGROUND_LOCATION_PERMISSION_INDEX] ==
                     PackageManager.PERMISSION_DENIED)) {
-            Snackbar.make(binding.mainLayout,
-                R.string.permission_denied_explanation,
-                Snackbar.LENGTH_INDEFINITE)
-                .setAction(R.string.settings) {
-                    startActivity(Intent().apply {
-                        action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                        data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                    })
-                }.show()
+
         } else {
             navigateToAddReminder()
         }
+    }
+
+    private fun openLocationSetting() {
+        Snackbar.make(binding.mainLayout,
+            R.string.permission_denied_explanation,
+            Snackbar.LENGTH_INDEFINITE)
+            .setAction(R.string.settings) {
+                startActivity(Intent().apply {
+                    action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                    data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                })
+            }.show()
     }
 }

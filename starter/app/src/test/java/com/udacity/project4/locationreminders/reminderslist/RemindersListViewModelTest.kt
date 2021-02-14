@@ -10,6 +10,7 @@ import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.getOrAwaitValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
 import org.junit.After
@@ -43,7 +44,7 @@ class RemindersListViewModelTest {
         addData()
     }
 
-    private fun addData() = runBlocking {
+    private fun addData() = runBlockingTest {
         val reminder1 = ReminderDTO("Test Title1", "Test Description 1", "Test Location 1", 40.000, 70.000)
         val reminder2 = ReminderDTO("Test Title2", "Test Description 2", "Test Location 2", 41.000, 71.000)
         val reminder3 = ReminderDTO("Test Title3", "Test Description 3", "Test Location 3", 42.000, 72.000)
@@ -53,13 +54,13 @@ class RemindersListViewModelTest {
     }
 
     @After
-    fun clear()  = runBlocking {
+    fun clear()  = runBlockingTest {
         dataSource.deleteAllReminders()
         stopKoin()
     }
 
     @Test
-    fun loadReminders() = runBlocking {
+    fun loadReminders() = runBlockingTest {
         mainCoroutineRule.pauseDispatcher()
         viewModel.loadReminders()
 
@@ -73,12 +74,31 @@ class RemindersListViewModelTest {
     }
 
     @Test
-    fun clearReminders_ShowNoData() = runBlocking {
+    fun clearReminders_ShowNoData() = runBlockingTest {
         dataSource.deleteAllReminders()
         viewModel.loadReminders()
 
         val reminders = viewModel.remindersList.getOrAwaitValue()
         assertThat(reminders.size, `is` (0))
         assertThat(viewModel.showNoData.value == true, `is`(true))
+    }
+
+    @Test
+    fun check_loading() = runBlockingTest {
+        mainCoroutineRule.pauseDispatcher()
+        viewModel.loadReminders()
+
+        assertThat(viewModel.showLoading.getOrAwaitValue(), `is`(true))
+        mainCoroutineRule.resumeDispatcher()
+
+        assertThat(viewModel.showLoading.getOrAwaitValue(), `is`(false))
+    }
+
+    @Test
+    fun shouldReturnError() = runBlockingTest {
+        dataSource.hasError = true
+        viewModel.loadReminders()
+
+        assertThat(viewModel.showSnackBar.getOrAwaitValue(), `is`("An error has occurred"))
     }
 }

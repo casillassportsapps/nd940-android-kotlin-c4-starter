@@ -69,7 +69,7 @@ class ReminderListFragmentTest : AutoCloseKoinTest() {
                 AuthenticationViewModel()
             }
 
-            single { RemindersLocalRepository(get()) }
+            single { RemindersLocalRepository(get()) as ReminderDataSource }
             single { LocalDB.createRemindersDao(appContext) }
         }
 

@@ -8,8 +8,13 @@ class FakeDataSource : ReminderDataSource {
     //    TODO: Create a fake data source to act as a double to the real data source
     private val data = mutableMapOf<String, ReminderDTO>()
 
+    var hasError = false
+
 
     override suspend fun getReminders(): Result<List<ReminderDTO>> {
+        if (hasError) {
+            return Result.Error("An error has occurred")
+        }
         return Result.Success(data.values.toList())
     }
 

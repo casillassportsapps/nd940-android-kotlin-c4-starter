@@ -53,9 +53,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View? {
-        binding =
-            DataBindingUtil.inflate(inflater, R.layout.fragment_select_location, container, false)
+    ): View {
+        binding = FragmentSelectLocationBinding.inflate(inflater, container, false)
 
         binding.viewModel = _viewModel
         binding.lifecycleOwner = this

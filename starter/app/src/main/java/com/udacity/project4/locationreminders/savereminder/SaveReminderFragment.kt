@@ -16,6 +16,7 @@ import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.location.LocationServices
+import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
@@ -54,9 +55,8 @@ class SaveReminderFragment : BaseFragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        binding =
-            DataBindingUtil.inflate(inflater, R.layout.fragment_save_reminder, container, false)
+    ): View {
+        binding = FragmentSaveReminderBinding.inflate(inflater, container, false)
 
         setDisplayHomeAsUpEnabled(true)
 
@@ -82,7 +82,9 @@ class SaveReminderFragment : BaseFragment() {
             val longitude = _viewModel.longitude.value
 
             val reminder = ReminderDataItem(title, description, location, latitude, longitude)
-            addGeoFence(reminder)
+            if (_viewModel.validateEnteredData(reminder)) {
+                addGeoFence(reminder)
+            }
         }
     }
 
@@ -111,7 +113,7 @@ class SaveReminderFragment : BaseFragment() {
 
                 geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
                     addOnSuccessListener {
-                        _viewModel.validateAndSaveReminder(reminder)
+                        _viewModel.saveReminder(reminder)
                         Toast.makeText(requireContext(), R.string.reminder_saved,
                             Toast.LENGTH_SHORT)
                             .show()
