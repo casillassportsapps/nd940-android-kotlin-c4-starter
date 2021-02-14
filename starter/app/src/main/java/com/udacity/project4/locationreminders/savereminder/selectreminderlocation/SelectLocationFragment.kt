@@ -48,6 +48,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSelectLocationBinding
     private var map: GoogleMap? = null
+    private var latLng: LatLng? = null
+    private var location: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -65,6 +67,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
 
         binding.button.setOnClickListener {
+            _viewModel.latitude.value = latLng?.latitude
+            _viewModel.longitude.value = latLng?.longitude
+            _viewModel.reminderSelectedLocationStr.value = location
             findNavController().popBackStack()
         }
 
@@ -77,9 +82,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
     private fun onLocationSelected(latLng: LatLng, location: String) {
-        _viewModel.latitude.value = latLng.latitude
-        _viewModel.longitude.value = latLng.longitude
-        _viewModel.reminderSelectedLocationStr.value = location
+        this.latLng = latLng
+        this.location = location
     }
 
     private fun setMapClickListener() {
